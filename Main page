@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Marvel Canon Watchlist Tracker</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.completed {
+text-decoration: line-through;
+color: #9ca3af;
+}
+@media print {
+.no-print { display: none; }
+body { background: white; color: black; }
+}
+</style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 sm:p-8">
+<div class="max-w-4xl mx-auto bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-slate-700">
+​<!-- Header Section -->
+<div class="bg-red-700 p-6 sm:p-8 text-white flex flex-col sm:flex-row justify-between items-center gap-4">
+<div>
+<h1 class="text-3xl font-extrabold tracking-wider uppercase font-sans">Marvel Canon Tracker</h1>
+<p class="text-red-100 text-sm mt-1">Complete Multiverse Canon Watchlist (Sorted by Release Date)</p>
+</div>
+<div class="flex gap-2 no-print">
+<button onclick="exportData()" class="bg-red-900 hover:bg-red-950 text-white font-medium py-2 px-4 rounded transition text-sm">
+Export Progress
+</button>
+<button onclick="resetList()" class="bg-red-900/50 hover:bg-red-950/80 text-white font-medium py-2 px-4 rounded transition text-sm">
+Reset
+</button>
+</div>
+</div>
+​<!-- Progress Bar -->
+<div class="bg-slate-750 p-4 border-b border-slate-700">
+<div class="flex justify-between items-center mb-2">
+<span class="text-sm font-semibold text-slate-300">Overall Completion</span>
+<span id="progressText" class="text-sm font-bold text-red-400">0 / 0 (0%)</span>
+</div>
+<div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+<div id="progressBar" class="bg-red-600 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+</div>
+</div>
+​<!-- Film List Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-700">
+<th class="p-4 w-12 text-center">Status</th>
+<th class="p-4 w-12 text-center">#</th>
+<th class="p-4">Film Title</th>
+<th class="p-4 hidden sm:table-cell">Release Date</th>
+<th class="p-4 w-48">Date Watched</th>
+</tr>
+</thead>
+<tbody id="movieTableBody" class="divide-y divide-slate-700/50 text-sm">
+<!-- JavaScript will dynamically render movies here -->
+</tbody>
+</table>
+</div>
+​<!-- Footer -->
+<div class="p-4 bg-slate-900/50 text-xs text-slate-400 text-center border-t border-slate-700">
+Progress automatically saved to your browser local storage.
+</div>
+</div>
+​<script>
+const movies = [
+{ id: 1, title: "Blade", releaseDate: "August 21, 1998" },
+{ id: 2, title: "X-Men", releaseDate: "July 14, 2000" },
+{ id: 3, title: "Blade II", releaseDate: "March 22, 2002" },
+{ id: 4, title: "Spider-Man", releaseDate: "May 3, 2002" },
+{ id: 5, title: "X2", releaseDate: "May 2, 2003" },
+{ id: 6, title: "Spider-Man 2", releaseDate: "June 30, 2004" },
+{ id: 7, title: "Blade: Trinity", releaseDate: "December 8, 2004" },
+{ id: 8, title: "X-Men: The Last Stand", releaseDate: "May 26, 2006" },
+{ id: 9, title: "Spider-Man 3", releaseDate: "May 4, 2007" },
+{ id: 10, title: "Iron Man", releaseDate: "May 2, 2008" },
+{ id: 11, title: "The Incredible Hulk", releaseDate: "June 13, 2008" },
+{ id: 12, title: "X-Men Origins: Wolverine", releaseDate: "May 1, 2009" },
+{ id: 13, title: "Iron Man 2", releaseDate: "May 7, 2010" },
+{ id: 14, title: "Thor", releaseDate: "May 6, 2011" },
+{ id: 15, title: "X-Men: First Class", releaseDate: "June 3, 2011" },
+{ id: 16, title: "Captain America: The First Avenger", releaseDate: "July 22, 2011" },
+{ id: 17, title: "The Avengers", releaseDate: "May 4, 2012" },
+{ id: 18, title: "The Amazing Spider-Man", releaseDate: "July 3, 2012" },
+{ id: 19, title: "Iron Man 3", releaseDate: "May 3, 2013" },
+{ id: 20, title: "The Wolverine", releaseDate: "July 26, 2013" },
+{ id: 21, title: "Thor: The Dark World", releaseDate: "November 8, 2013" },
+{ id: 22, title: "Captain America: The Winter Soldier", releaseDate: "April 4, 2014" },
+{ id: 23, title: "The Amazing Spider-Man 2", releaseDate: "May 2, 2014" },
+{ id: 24, title: "X-Men: Days of Future Past", releaseDate: "May 23, 2014" },
+{ id: 25, title: "Guardians of the Galaxy", releaseDate: "August 1, 2014" },
+{ id: 26, title: "Avengers: Age of Ultron", releaseDate: "May 1, 2015" },
+{ id: 27, title: "Ant-Man", releaseDate: "July 17, 2015" },
+{ id: 28, title: "Deadpool", releaseDate: "February 12, 2016" },
+{ id: 29, title: "Captain America: Civil War", releaseDate: "May 6, 2016" },
+{ id: 30, title: "Doctor Strange", releaseDate: "November 4, 2016" },
+{ id: 31, title: "Logan", releaseDate: "March 3, 2017" },
+{ id: 32, title: "Guardians of the Galaxy Vol. 2", releaseDate: "May 5, 2017" },
+{ id: 33, title: "Spider-Man: Homecoming", releaseDate: "July 7, 2017" },
+{ id: 34, title: "Thor: Ragnarok", releaseDate: "November 3, 2017" },
+{ id: 35, title: "Black Panther", releaseDate: "February 16, 2018" },
+{ id: 36, title: "Avengers: Infinity War", releaseDate: "April 27, 2018" },
+{ id: 37, title: "Deadpool 2", releaseDate: "May 18, 2018" },
+{ id: 38, title: "Ant-Man and the Wasp", releaseDate: "July 6, 2018" },
+{ id: 39, title: "Captain Marvel", releaseDate: "March 8, 2019" },
+{ id: 40, title: "Avengers: Endgame", releaseDate: "April 26, 2019" },
+{ id: 41, title: "Spider-Man: Far From Home", releaseDate: "July 2, 2019" },
+{ id: 42, title: "Black Widow", releaseDate: "July 9, 2021" },
+{ id: 43, title: "Shang-Chi and the Legend of the Ten Rings", releaseDate: "September 3, 2021" },
+{ id: 44, title: "Eternals", releaseDate: "November 5, 2021" },
+{ id: 45, title: "Spider-Man: No Way Home", releaseDate: "December 17, 2021" },
+{ id: 46, title: "Doctor Strange in the Multiverse of Madness", releaseDate: "May 6, 2022" },
+{ id: 47, title: "Thor: Love and Thunder", releaseDate: "July 8, 2022" },
+{ id: 48, title: "Black Panther: Wakanda Forever", releaseDate: "November 11, 2022" },
+{ id: 49, title: "Ant-Man and the Wasp: Quantumania", releaseDate: "February 17, 2023" },
+{ id: 50, title: "Guardians of the Galaxy Vol. 3", releaseDate: "May 5, 2023" },
+{ id: 51, title: "The Marvels", releaseDate: "November 10, 2023" },
+{ id: 52, title: "Deadpool & Wolverine", releaseDate: "July 26, 2024" },
+{ id: 53, title: "Captain America: Brave New World", releaseDate: "February 14, 2025" },
+{ id: 54, title: "Thunderbolts*", releaseDate: "May 2, 2025" },
+{ id: 55, title: "The Fantastic Four: First Steps", releaseDate: "July 25, 2025" },
+{ id: 56, title: "Spider-Man: Brand New Day", releaseDate: "July 31, 2026" },
+{ id: 57, title: "Avengers: Doomsday", releaseDate: "December 18, 2026" }
+];
+​let state = JSON.parse(localStorage.getItem('marvel_watchlist_state')) || {};
+​function renderTable() {
+const tbody = document.getElementById('movieTableBody');
+tbody.innerHTML = '';
+​let watchedCount = 0;
+​movies.forEach(movie => {
+const isWatched = state[movie.id]?.watched || false;
+const watchedDate = state[movie.id]?.date || '';
+​if (isWatched) watchedCount++;
+​const tr = document.createElement('tr');
+tr.className = hover:bg-slate-750/50 transition ${isWatched ? 'bg-slate-900/30' : ''};
+​tr.innerHTML = <td class="p-4 text-center"> <input type="checkbox"  ${isWatched ? 'checked' : ''}  onchange="toggleMovie(${movie.id}, this.checked)" class="w-5 h-5 rounded bg-slate-700 border-slate-600 text-red-600 focus:ring-red-500 focus:ring-offset-slate-800 cursor-pointer"> </td> <td class="p-4 text-center font-mono text-slate-500">${movie.id}</td> <td class="p-4 font-semibold ${isWatched ? 'completed' : 'text-slate-100'}"> ${movie.title} <div class="text-xs text-slate-400 font-normal sm:hidden mt-0.5">${movie.releaseDate}</div> </td> <td class="p-4 text-slate-400 hidden sm:table-cell">${movie.releaseDate}</td> <td class="p-4"> <input type="date"  value="${watchedDate}" onchange="updateDate(${movie.id}, this.value)" class="bg-slate-700 text-slate-200 text-xs rounded p-1.5 border border-slate-600 focus:outline-none focus:border-red-500 w-full max-w-[150px]"> </td>;
+​tbody.appendChild(tr);
+});
+​// Update Progress Bar
+const total = movies.length;
+const percentage = Math.round((watchedCount / total) * 100);
+document.getElementById('progressBar').style.width = ${percentage}%;
+document.getElementById('progressText').textContent = ${watchedCount} / ${total} (${percentage}%);
+}
+​function toggleMovie(id, isChecked) {
+if (!state[id]) state[id] = {};
+​state[id].watched = isChecked;
+if (isChecked && !state[id].date) {
+// Set today's date in YYYY-MM-DD format
+state[id].date = new Date().toISOString().split('T')[0];
+} else if (!isChecked) {
+state[id].date = '';
+}
+​saveAndRender();
+}
+​function updateDate(id, dateValue) {
+if (!state[id]) state[id] = {};
+state[id].date = dateValue;
+if (dateValue && !state[id].watched) {
+state[id].watched = true;
+}
+saveAndRender();
+}
+​function saveAndRender() {
+localStorage.setItem('marvel_watchlist_state', JSON.stringify(state));
+renderTable();
+}
+​function resetList() {
+if (confirm("Are you sure you want to reset all your progress?")) {
+state = {};
+saveAndRender();
+}
+}
+​function exportData() {
+const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+const downloadAnchor = document.createElement('a');
+downloadAnchor.setAttribute("href", dataStr);
+downloadAnchor.setAttribute("download", "marvel_watchlist_progress.json");
+document.body.appendChild(downloadAnchor);
+downloadAnchor.click();
+downloadAnchor.remove();
+}
+​// Initial Load
+renderTable();
+</script>
+</body>
+</html>
